@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+
+type CookieToSet = { name: string; value: string; options: CookieOptions }
 
 // Service role: bypassa RLS. Usado pelo webhook (sem sessão) e
 // por server actions que já validaram a sessão manualmente.
@@ -24,7 +26,7 @@ export async function supabaseServer() {
         getAll() {
           return cookieStore.getAll()
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: CookieToSet[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
