@@ -40,17 +40,17 @@ const TOOL_DEFINITION = {
       type: 'object',
       properties: {
         categoria: {
-          type: 'string',
-          enum: ['aluguel', 'venda', 'investimento', 'construcao'],
-          description: 'Categoria do interesse. Omita se não estiver claro pela transcrição.'
+          type: ['string', 'null'],
+          enum: ['aluguel', 'venda', 'investimento', 'construcao', null],
+          description: 'Categoria do interesse, ou null se não estiver claro pela transcrição.'
         },
         nome_cliente: {
-          type: 'string',
-          description: 'Nome do cliente, se mencionado'
+          type: ['string', 'null'],
+          description: 'Nome do cliente, ou null se não mencionado'
         },
         telefone_cliente: {
-          type: 'string',
-          description: 'Telefone do cliente, se mencionado'
+          type: ['string', 'null'],
+          description: 'Telefone do cliente, ou null se não mencionado'
         },
         descricao: {
           type: 'string',
@@ -60,22 +60,22 @@ const TOOL_DEFINITION = {
           type: 'object',
           properties: {
             tipo_imovel: {
-              type: 'string',
+              type: ['string', 'null'],
               description: 'Apartamento, casa, terreno, sala comercial, etc.'
             },
-            quartos: { type: 'number' },
-            bairro: { type: 'string' },
-            cidade: { type: 'string' },
+            quartos: { type: ['number', 'null'] },
+            bairro: { type: ['string', 'null'] },
+            cidade: { type: ['string', 'null'] },
             faixa_preco: {
-              type: 'string',
+              type: ['string', 'null'],
               description: 'Valor ou faixa mencionada, como "até 500 mil" ou "entre 3 e 4 mil"'
             },
             urgencia: {
-              type: 'string',
-              enum: ['baixa', 'media', 'alta']
+              type: ['string', 'null'],
+              enum: ['baixa', 'media', 'alta', null]
             },
             observacoes: {
-              type: 'string',
+              type: ['string', 'null'],
               description: 'Qualquer detalhe relevante não capturado pelos outros campos'
             }
           }
