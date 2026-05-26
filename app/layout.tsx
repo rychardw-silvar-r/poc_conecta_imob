@@ -1,3 +1,5 @@
+import './globals.css'
+
 export const metadata = {
   title: 'Conecta Imob',
   description: 'Plataforma interna de captação imobiliária'
@@ -6,15 +8,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body
-        style={{
-          margin: 0,
-          fontFamily:
-            'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
-        }}
-      >
-        {children}
-      </body>
+      <body className="min-h-screen bg-zinc-50 text-zinc-900">{children}</body>
     </html>
   )
 }
