@@ -39,6 +39,7 @@ export default async function LeadsPage() {
     <LeadsBoard
       leads={(leads ?? []) as unknown as Lead[]}
       usuarioAtual={{ id: usuario.id, nome: usuario.nome }}
+      isAdmin={usuario.papel === 'admin'}
     />
   )
 }

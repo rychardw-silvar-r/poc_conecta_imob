@@ -24,10 +24,12 @@ const STATUS_LABEL: Record<StatusLead, string> = {
 
 export function LeadsBoard({
   leads,
-  usuarioAtual
+  usuarioAtual,
+  isAdmin
 }: {
   leads: Lead[]
   usuarioAtual: { id: string; nome: string }
+  isAdmin: boolean
 }) {
   const [statusFilter, setStatusFilter] = useState<'todos' | StatusLead>(
     'todos'
@@ -64,11 +66,18 @@ export function LeadsBoard({
           <h1 className="text-2xl font-semibold">Leads</h1>
           <p className="text-sm text-zinc-500">Olá, {usuarioAtual.nome}.</p>
         </div>
-        <form action={signOut}>
-          <button className="text-sm text-zinc-600 underline hover:text-zinc-900">
-            Sair
-          </button>
-        </form>
+        <div className="flex items-center gap-4 text-sm">
+          {isAdmin && (
+            <a href="/admin" className="text-zinc-700 hover:text-zinc-900">
+              Admin
+            </a>
+          )}
+          <form action={signOut}>
+            <button className="text-zinc-600 underline hover:text-zinc-900">
+              Sair
+            </button>
+          </form>
+        </div>
       </header>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
