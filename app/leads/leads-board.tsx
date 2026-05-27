@@ -47,45 +47,8 @@ export function LeadsBoard({
   const [openId, setOpenId] = useState<string | null>(null)
 
   useEffect(() => {
-    const supabase = supabaseBrowser()
-    let channel: ReturnType<typeof supabase.channel> | null = null
-
-    // onAuthStateChange cuida de renovações futuras do JWT (~1h)
-    const {
-      data: { subscription: authSub }
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.access_token) {
-        supabase.realtime.setAuth(session.access_token)
-      }
-    })
-
-    // getSession garante que o token já está no realtime ANTES
-    // de assinar o canal (onAuthStateChange dispara async e
-    // chegava depois do .subscribe(), causando subscribe sem auth).
-    async function setup() {
-      const {
-        data: { session }
-      } = await supabase.auth.getSession()
-      if (session?.access_token) {
-        supabase.realtime.setAuth(session.access_token)
-      }
-
-      channel = supabase
-        .channel('leads-realtime')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'leads' },
-          () => router.refresh()
-        )
-        .subscribe()
-    }
-
-    setup()
-
-    return () => {
-      authSub.unsubscribe()
-      if (channel) supabase.removeChannel(channel)
-    }
+    const interval = setInterval(() => router.refresh(), 10_000)
+    return () => clearInterval(interval)
   }, [router])
 
   const filtered = useMemo(() => {
