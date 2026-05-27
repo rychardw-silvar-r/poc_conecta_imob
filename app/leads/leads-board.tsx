@@ -48,39 +48,29 @@ export function LeadsBoard({
 
   useEffect(() => {
     const supabase = supabaseBrowser()
-    console.log('[realtime] inicializando subscription leads')
 
-    let channel: ReturnType<typeof supabase.channel> | null = null
-
-    ;(async () => {
-      const {
-        data: { session }
-      } = await supabase.auth.getSession()
+    // Seta o token agora E toda vez que o JWT renovar (~1h).
+    // Sem isso o broker para de entregar eventos quando o token expira.
+    const {
+      data: { subscription: authSub }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.access_token) {
-        console.log('[realtime] aplicando access_token na realtime')
         supabase.realtime.setAuth(session.access_token)
-      } else {
-        console.warn('[realtime] sem sessão — RLS vai bloquear eventos')
       }
+    })
 
-      channel = supabase
-        .channel('leads-realtime')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'leads' },
-          (payload) => {
-            console.log('[realtime] evento leads:', payload)
-            router.refresh()
-          }
-        )
-        .subscribe((status, err) => {
-          console.log('[realtime] status:', status, err ?? '')
-        })
-    })()
+    const channel = supabase
+      .channel('leads-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'leads' },
+        () => router.refresh()
+      )
+      .subscribe()
 
     return () => {
-      console.log('[realtime] removendo subscription')
-      if (channel) supabase.removeChannel(channel)
+      authSub.unsubscribe()
+      supabase.removeChannel(channel)
     }
   }, [router])
 
