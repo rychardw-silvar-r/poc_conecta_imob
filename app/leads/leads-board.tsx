@@ -1,9 +1,16 @@
 'use client'
 
-import { useMemo, useState, useTransition } from 'react'
-import type { Lead, StatusLead } from '@/lib/types'
-import { assumirLead, mudarStatus } from './actions'
+import { useEffect, useMemo, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
+import type { Interacao, Lead, StatusLead } from '@/lib/types'
+import {
+  assumirLead,
+  mudarStatus,
+  addNota,
+  getInteracoes
+} from './actions'
 import { signOut } from '../login/actions'
+import { supabaseBrowser } from '@/lib/supabase/client'
 
 const STATUS_TABS: { key: 'todos' | StatusLead; label: string }[] = [
   { key: 'todos', label: 'Todos' },
@@ -31,11 +38,27 @@ export function LeadsBoard({
   usuarioAtual: { id: string; nome: string }
   isAdmin: boolean
 }) {
+  const router = useRouter()
   const [statusFilter, setStatusFilter] = useState<'todos' | StatusLead>(
     'todos'
   )
   const [search, setSearch] = useState('')
   const [openId, setOpenId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const supabase = supabaseBrowser()
+    const channel = supabase
+      .channel('leads-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'leads' },
+        () => router.refresh()
+      )
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [router])
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim()
@@ -250,9 +273,92 @@ function LeadRow({
               </span>
             )}
           </div>
+
+          <InteracoesSection leadId={lead.id} />
         </div>
       )}
     </li>
+  )
+}
+
+function InteracoesSection({ leadId }: { leadId: string }) {
+  const [interacoes, setInteracoes] = useState<Interacao[]>([])
+  const [loading, setLoading] = useState(true)
+  const [nota, setNota] = useState('')
+  const [isPending, startTransition] = useTransition()
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    getInteracoes(leadId).then((data) => {
+      if (!cancelled) {
+        setInteracoes(data)
+        setLoading(false)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [leadId])
+
+  function handleSubmit() {
+    const text = nota.trim()
+    if (!text) return
+    startTransition(async () => {
+      await addNota(leadId, text)
+      setNota('')
+      const fresh = await getInteracoes(leadId)
+      setInteracoes(fresh)
+    })
+  }
+
+  return (
+    <section className="border-t border-zinc-200 pt-4">
+      <h3 className="mb-2 text-sm font-medium text-zinc-700">Histórico</h3>
+      {loading ? (
+        <p className="text-sm text-zinc-500">Carregando…</p>
+      ) : interacoes.length === 0 ? (
+        <p className="text-sm text-zinc-500">Nenhuma interação ainda.</p>
+      ) : (
+        <ul className="space-y-2">
+          {interacoes.map((i) => (
+            <li key={i.id} className="rounded-lg bg-zinc-50 px-3 py-2 text-sm">
+              <div className="text-xs text-zinc-500">
+                {i.autor?.nome ?? 'Sistema'} · {formatDate(i.created_at)}
+                {i.tipo !== 'nota' && (
+                  <span className="ml-1 rounded bg-zinc-200 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-zinc-700">
+                    {i.tipo === 'mudanca_status' ? 'status' : i.tipo}
+                  </span>
+                )}
+              </div>
+              <p className="mt-1 whitespace-pre-wrap text-zinc-800">
+                {i.conteudo}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="mt-3 space-y-2">
+        <textarea
+          value={nota}
+          onChange={(e) => setNota(e.target.value)}
+          placeholder="Adicionar nota..."
+          rows={2}
+          className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900"
+        />
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isPending || !nota.trim()}
+            className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50"
+          >
+            Adicionar nota
+          </button>
+        </div>
+      </div>
+    </section>
   )
 }
 

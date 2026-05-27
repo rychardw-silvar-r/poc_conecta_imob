@@ -7,6 +7,16 @@ export type StatusLead =
   | 'perdido'
 export type Papel = 'captador' | 'comercial' | 'admin'
 
+export type TipoInteracao = 'nota' | 'mudanca_status' | 'atribuicao'
+
+export type Interacao = {
+  id: string
+  tipo: string
+  conteudo: string
+  created_at: string
+  autor?: { nome: string } | null
+}
+
 export type Lead = {
   id: string
   created_at: string
