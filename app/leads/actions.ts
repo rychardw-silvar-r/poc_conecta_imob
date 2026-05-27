@@ -90,9 +90,39 @@ export async function addNota(leadId: string, conteudo: string) {
 
 export async function deleteLead(leadId: string) {
   const { admin } = await autorizarComercial()
+
+  // Recupera o audio_url antes do delete pra limpar o storage depois
+  const { data: lead } = await admin
+    .from('leads')
+    .select('audio_url')
+    .eq('id', leadId)
+    .maybeSingle()
+
+  // Lead-first: se o storage falhar depois, o lead ainda some.
+  // Interacoes vao junto via cascade da FK.
   const { error } = await admin.from('leads').delete().eq('id', leadId)
   if (error) throw new Error(error.message)
+
+  // Best-effort: remove o audio do Storage. Se falhar (ja removido,
+  // path nao bate, etc), apenas loga e segue.
+  if (lead?.audio_url) {
+    const path = extrairPathDoAudio(lead.audio_url)
+    if (path) {
+      const { error: storageErr } = await admin.storage
+        .from('audios-captacao')
+        .remove([path])
+      if (storageErr) {
+        console.warn('[deleteLead] storage remove falhou', storageErr.message)
+      }
+    }
+  }
+
   revalidatePath('/leads')
+}
+
+function extrairPathDoAudio(url: string): string | null {
+  const match = url.match(/\/audios-captacao\/(.+)$/)
+  return match ? match[1] : null
 }
 
 export async function getInteracoes(leadId: string): Promise<Interacao[]> {
