@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { signOut } from '../login/actions'
-import { addUser, updateUser, toggleAtivo } from './actions'
+import { addUser, updateUser, toggleAtivo, deleteUser } from './actions'
 
 type Papel = 'captador' | 'comercial' | 'admin'
 
@@ -68,7 +68,9 @@ export function AdminView({
         </button>
       </div>
 
-      {tab === 'usuarios' && <UsersPanel users={users} />}
+      {tab === 'usuarios' && (
+        <UsersPanel users={users} currentUserId={usuarioAtual.id} />
+      )}
       {tab === 'resumo' && <ResumoPanel users={users} leads={leads} />}
     </div>
   )
@@ -83,7 +85,13 @@ function tabClass(active: boolean) {
   )
 }
 
-function UsersPanel({ users }: { users: User[] }) {
+function UsersPanel({
+  users,
+  currentUserId
+}: {
+  users: User[]
+  currentUserId: string
+}) {
   const [showAdd, setShowAdd] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
@@ -122,6 +130,7 @@ function UsersPanel({ users }: { users: User[] }) {
               <UserRow
                 key={u.id}
                 user={u}
+                currentUserId={currentUserId}
                 onEdit={() => setEditingId(u.id)}
               />
             )
@@ -132,8 +141,17 @@ function UsersPanel({ users }: { users: User[] }) {
   )
 }
 
-function UserRow({ user, onEdit }: { user: User; onEdit: () => void }) {
+function UserRow({
+  user,
+  currentUserId,
+  onEdit
+}: {
+  user: User
+  currentUserId: string
+  onEdit: () => void
+}) {
   const [isPending, startTransition] = useTransition()
+  const isSelf = user.id === currentUserId
 
   return (
     <li className="flex flex-wrap items-center gap-3 px-4 py-3">
@@ -146,6 +164,11 @@ function UserRow({ user, onEdit }: { user: User; onEdit: () => void }) {
           {!user.ativo && (
             <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
               inativo
+            </span>
+          )}
+          {isSelf && (
+            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+              você
             </span>
           )}
         </div>
@@ -171,6 +194,30 @@ function UserRow({ user, onEdit }: { user: User; onEdit: () => void }) {
       >
         {user.ativo ? 'Desativar' : 'Reativar'}
       </button>
+      {!isSelf && (
+        <button
+          disabled={isPending}
+          onClick={() => {
+            if (
+              !confirm(
+                `Excluir ${user.nome}? Esta ação é permanente. Leads associados ficarão sem captador/comercial atribuído.`
+              )
+            ) {
+              return
+            }
+            startTransition(async () => {
+              try {
+                await deleteUser(user.id)
+              } catch (e) {
+                alert(e instanceof Error ? e.message : 'Erro ao excluir')
+              }
+            })
+          }}
+          className="rounded-lg border border-red-300 px-3 py-1 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50"
+        >
+          Excluir
+        </button>
+      )}
     </li>
   )
 }

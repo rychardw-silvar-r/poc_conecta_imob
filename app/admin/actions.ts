@@ -79,3 +79,13 @@ export async function toggleAtivo(userId: string, ativo: boolean) {
   await admin.from('usuarios').update({ ativo }).eq('id', userId)
   revalidatePath('/admin')
 }
+
+export async function deleteUser(userId: string) {
+  const { id: currentId, admin } = await autorizarAdmin()
+  if (userId === currentId) {
+    throw new Error('Você não pode excluir sua própria conta')
+  }
+  const { error } = await admin.from('usuarios').delete().eq('id', userId)
+  if (error) throw new Error(error.message)
+  revalidatePath('/admin')
+}
