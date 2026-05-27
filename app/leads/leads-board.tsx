@@ -47,15 +47,22 @@ export function LeadsBoard({
 
   useEffect(() => {
     const supabase = supabaseBrowser()
+    console.log('[realtime] inicializando subscription leads')
     const channel = supabase
       .channel('leads-realtime')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'leads' },
-        () => router.refresh()
+        (payload) => {
+          console.log('[realtime] evento leads:', payload)
+          router.refresh()
+        }
       )
-      .subscribe()
+      .subscribe((status, err) => {
+        console.log('[realtime] status:', status, err ?? '')
+      })
     return () => {
+      console.log('[realtime] removendo subscription')
       supabase.removeChannel(channel)
     }
   }, [router])
