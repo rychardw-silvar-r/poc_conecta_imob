@@ -75,7 +75,7 @@ export function LeadsBoard({
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
-      <header className="mb-6 flex items-center justify-between">
+      <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Leads</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Olá, {usuarioAtual.nome}.</p>
@@ -95,13 +95,13 @@ export function LeadsBoard({
         </div>
       </header>
 
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div className="mb-2 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setStatusFilter(tab.key)}
             className={
-              'rounded-full px-3 py-1 text-sm transition ' +
+              'shrink-0 rounded-full px-3 py-1 text-sm transition ' +
               (statusFilter === tab.key
                 ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
                 : 'border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800')
@@ -110,12 +110,14 @@ export function LeadsBoard({
             {tab.label}
           </button>
         ))}
+      </div>
+      <div className="mb-4">
         <input
           type="search"
           placeholder="Buscar por cliente, bairro, telefone..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="ml-auto w-72 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-1.5 text-sm outline-none focus:border-zinc-900 dark:focus:border-zinc-400 placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
+          className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:focus:border-zinc-400 placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
         />
       </div>
 
