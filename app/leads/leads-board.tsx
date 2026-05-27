@@ -11,7 +11,7 @@ import {
   deleteLead
 } from './actions'
 import { signOut } from '../login/actions'
-import { supabaseBrowser } from '@/lib/supabase/client'
+import { ThemeToggle } from '../theme-toggle'
 
 const STATUS_TABS: { key: 'todos' | StatusLead; label: string }[] = [
   { key: 'todos', label: 'Todos' },
@@ -78,16 +78,17 @@ export function LeadsBoard({
       <header className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Leads</h1>
-          <p className="text-sm text-zinc-500">Olá, {usuarioAtual.nome}.</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Olá, {usuarioAtual.nome}.</p>
         </div>
         <div className="flex items-center gap-4 text-sm">
           {isAdmin && (
-            <a href="/admin" className="text-zinc-700 hover:text-zinc-900">
+            <a href="/admin" className="text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100">
               Admin
             </a>
           )}
+          <ThemeToggle />
           <form action={signOut}>
-            <button className="text-zinc-600 underline hover:text-zinc-900">
+            <button className="text-zinc-600 dark:text-zinc-400 underline hover:text-zinc-900 dark:hover:text-zinc-100">
               Sair
             </button>
           </form>
@@ -102,8 +103,8 @@ export function LeadsBoard({
             className={
               'rounded-full px-3 py-1 text-sm transition ' +
               (statusFilter === tab.key
-                ? 'bg-zinc-900 text-white'
-                : 'border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100')
+                ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
+                : 'border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800')
             }
           >
             {tab.label}
@@ -114,12 +115,12 @@ export function LeadsBoard({
           placeholder="Buscar por cliente, bairro, telefone..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="ml-auto w-72 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm outline-none focus:border-zinc-900"
+          className="ml-auto w-72 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-1.5 text-sm outline-none focus:border-zinc-900 dark:focus:border-zinc-400 placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
         />
       </div>
 
       {filtered.length === 0 ? (
-        <p className="rounded-2xl border border-zinc-200 bg-white p-8 text-center text-sm text-zinc-500">
+        <p className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
           Nenhum lead encontrado.
         </p>
       ) : (
@@ -159,10 +160,10 @@ function LeadRow({
     typeof caract.faixa_preco === 'string' ? caract.faixa_preco : null
 
   return (
-    <li className="overflow-hidden rounded-2xl border border-zinc-200 bg-white">
+    <li className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
       <button
         onClick={onToggle}
-        className="flex w-full items-start gap-4 px-5 py-4 text-left hover:bg-zinc-50"
+        className="flex w-full items-start gap-4 px-5 py-4 text-left hover:bg-zinc-50 dark:hover:bg-zinc-800"
       >
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -170,7 +171,7 @@ function LeadRow({
               {lead.nome_cliente ?? 'Cliente sem nome'}
             </span>
             {lead.categoria && (
-              <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700">
+              <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:text-zinc-300">
                 {lead.categoria}
               </span>
             )}
@@ -182,10 +183,10 @@ function LeadRow({
               {STATUS_LABEL[lead.status]}
             </span>
           </div>
-          <p className="mt-1 line-clamp-2 text-sm text-zinc-600">
+          <p className="mt-1 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">
             {lead.descricao ?? lead.transcricao ?? '—'}
           </p>
-          <div className="mt-1 text-xs text-zinc-500">
+          <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
             {formatDate(lead.created_at)}
             {bairro ? ` · ${bairro}` : ''}
             {faixaPreco ? ` · ${faixaPreco}` : ''}
@@ -195,7 +196,7 @@ function LeadRow({
       </button>
 
       {open && (
-        <div className="space-y-4 border-t border-zinc-200 px-5 py-4">
+        <div className="space-y-4 border-t border-zinc-200 dark:border-zinc-800 px-5 py-4">
           {lead.telefone_cliente && (
             <div className="text-sm">
               Telefone:{' '}
@@ -203,7 +204,7 @@ function LeadRow({
                 href={`https://wa.me/${onlyDigits(lead.telefone_cliente)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="text-blue-700 underline"
+                className="text-blue-700 dark:text-blue-400 underline"
               >
                 {lead.telefone_cliente}
               </a>
@@ -214,10 +215,10 @@ function LeadRow({
 
           {lead.transcricao && (
             <details className="text-sm">
-              <summary className="cursor-pointer text-zinc-600">
+              <summary className="cursor-pointer text-zinc-600 dark:text-zinc-400">
                 Ver transcrição
               </summary>
-              <p className="mt-2 whitespace-pre-wrap text-zinc-800">
+              <p className="mt-2 whitespace-pre-wrap text-zinc-800 dark:text-zinc-200">
                 {lead.transcricao}
               </p>
             </details>
@@ -236,7 +237,7 @@ function LeadRow({
                     await assumirLead(lead.id)
                   })
                 }
-                className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100 disabled:opacity-50"
+                className="rounded-lg border border-zinc-300 dark:border-zinc-700 px-3 py-1.5 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50"
               >
                 Assumir lead
               </button>
@@ -250,7 +251,7 @@ function LeadRow({
                   await mudarStatus(lead.id, next)
                 })
               }}
-              className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm"
+              className="rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-1.5 text-sm"
             >
               <option value="novo">Novo</option>
               <option value="em_atendimento">Em atendimento</option>
@@ -259,7 +260,7 @@ function LeadRow({
               <option value="perdido">Perdido</option>
             </select>
             {lead.comercial?.nome && (
-              <span className="ml-auto text-xs text-zinc-500">
+              <span className="ml-auto text-xs text-zinc-500 dark:text-zinc-400">
                 Atribuído a {lead.comercial.nome}
               </span>
             )}
@@ -277,7 +278,7 @@ function LeadRow({
                   await deleteLead(lead.id)
                 })
               }}
-              className="rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50"
+              className="rounded-lg border border-red-300 dark:border-red-800 px-3 py-1.5 text-sm text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-50"
             >
               Excluir
             </button>
@@ -322,25 +323,25 @@ function InteracoesSection({ leadId }: { leadId: string }) {
   }
 
   return (
-    <section className="border-t border-zinc-200 pt-4">
-      <h3 className="mb-2 text-sm font-medium text-zinc-700">Histórico</h3>
+    <section className="border-t border-zinc-200 dark:border-zinc-800 pt-4">
+      <h3 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">Histórico</h3>
       {loading ? (
-        <p className="text-sm text-zinc-500">Carregando…</p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Carregando…</p>
       ) : interacoes.length === 0 ? (
-        <p className="text-sm text-zinc-500">Nenhuma interação ainda.</p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Nenhuma interação ainda.</p>
       ) : (
         <ul className="space-y-2">
           {interacoes.map((i) => (
-            <li key={i.id} className="rounded-lg bg-zinc-50 px-3 py-2 text-sm">
-              <div className="text-xs text-zinc-500">
+            <li key={i.id} className="rounded-lg bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-sm">
+              <div className="text-xs text-zinc-500 dark:text-zinc-400">
                 {i.autor?.nome ?? 'Sistema'} · {formatDate(i.created_at)}
                 {i.tipo !== 'nota' && (
-                  <span className="ml-1 rounded bg-zinc-200 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-zinc-700">
+                  <span className="ml-1 rounded bg-zinc-200 dark:bg-zinc-700 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-zinc-700 dark:text-zinc-300">
                     {i.tipo === 'mudanca_status' ? 'status' : i.tipo}
                   </span>
                 )}
               </div>
-              <p className="mt-1 whitespace-pre-wrap text-zinc-800">
+              <p className="mt-1 whitespace-pre-wrap text-zinc-800 dark:text-zinc-200">
                 {i.conteudo}
               </p>
             </li>
@@ -354,14 +355,14 @@ function InteracoesSection({ leadId }: { leadId: string }) {
           onChange={(e) => setNota(e.target.value)}
           placeholder="Adicionar nota..."
           rows={2}
-          className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900"
+          className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:focus:border-zinc-400 placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
         />
         <div className="flex justify-end">
           <button
             type="button"
             onClick={handleSubmit}
             disabled={isPending || !nota.trim()}
-            className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50"
+            className="rounded-lg bg-zinc-900 dark:bg-zinc-100 px-3 py-1.5 text-sm font-medium text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-300 disabled:opacity-50"
           >
             Adicionar nota
           </button>
@@ -394,8 +395,8 @@ function CaracteristicasGrid({
     <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
       {items.map(([label, v]) => (
         <div key={label} className="flex">
-          <dt className="w-32 text-zinc-500">{label}:</dt>
-          <dd className="flex-1 text-zinc-800">{String(v)}</dd>
+          <dt className="w-32 text-zinc-500 dark:text-zinc-400">{label}:</dt>
+          <dd className="flex-1 text-zinc-800 dark:text-zinc-200">{String(v)}</dd>
         </div>
       ))}
     </dl>
@@ -405,15 +406,15 @@ function CaracteristicasGrid({
 function statusColor(s: StatusLead): string {
   switch (s) {
     case 'novo':
-      return 'bg-blue-100 text-blue-800'
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
     case 'em_atendimento':
-      return 'bg-amber-100 text-amber-800'
+      return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200'
     case 'qualificado':
-      return 'bg-purple-100 text-purple-800'
+      return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
     case 'fechado':
-      return 'bg-green-100 text-green-800'
+      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
     case 'perdido':
-      return 'bg-zinc-200 text-zinc-700'
+      return 'bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300'
   }
 }
 

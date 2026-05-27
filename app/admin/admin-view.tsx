@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { signOut } from '../login/actions'
 import { addUser, updateUser, toggleAtivo, deleteUser } from './actions'
+import { ThemeToggle } from '../theme-toggle'
 
 type Papel = 'captador' | 'comercial' | 'admin'
 
@@ -39,14 +40,15 @@ export function AdminView({
       <header className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Administração</h1>
-          <p className="text-sm text-zinc-500">Olá, {usuarioAtual.nome}.</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Olá, {usuarioAtual.nome}.</p>
         </div>
         <div className="flex items-center gap-4 text-sm">
-          <a href="/leads" className="text-zinc-700 hover:text-zinc-900">
+          <a href="/leads" className="text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100">
             Leads
           </a>
+          <ThemeToggle />
           <form action={signOut}>
-            <button className="text-zinc-600 underline hover:text-zinc-900">
+            <button className="text-zinc-600 dark:text-zinc-400 underline hover:text-zinc-900 dark:hover:text-zinc-100">
               Sair
             </button>
           </form>
@@ -80,8 +82,8 @@ function tabClass(active: boolean) {
   return (
     'rounded-full px-3 py-1 text-sm transition ' +
     (active
-      ? 'bg-zinc-900 text-white'
-      : 'border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100')
+      ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
+      : 'border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800')
   )
 }
 
@@ -101,7 +103,7 @@ function UsersPanel({
         <h2 className="text-lg font-medium">Usuários</h2>
         <button
           onClick={() => setShowAdd((v) => !v)}
-          className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-700"
+          className="rounded-lg bg-zinc-900 dark:bg-zinc-100 px-3 py-1.5 text-sm font-medium text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-300"
         >
           {showAdd ? 'Cancelar' : 'Adicionar usuário'}
         </button>
@@ -111,9 +113,9 @@ function UsersPanel({
         <UserForm action={addUser} onDone={() => setShowAdd(false)} />
       )}
 
-      <ul className="divide-y divide-zinc-200 rounded-2xl border border-zinc-200 bg-white">
+      <ul className="divide-y divide-zinc-200 dark:divide-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         {users.length === 0 ? (
-          <li className="p-6 text-center text-sm text-zinc-500">
+          <li className="p-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
             Nenhum usuário cadastrado.
           </li>
         ) : (
@@ -158,28 +160,28 @@ function UserRow({
       <div className="min-w-[220px] flex-1">
         <div className="flex items-center gap-2 font-medium">
           {user.nome}
-          <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700">
+          <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:text-zinc-300">
             {user.papel}
           </span>
           {!user.ativo && (
-            <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+            <span className="rounded-full bg-red-100 dark:bg-red-900 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-300">
               inativo
             </span>
           )}
           {isSelf && (
-            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+            <span className="rounded-full bg-blue-100 dark:bg-blue-900 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">
               você
             </span>
           )}
         </div>
-        <div className="mt-0.5 text-xs text-zinc-500">
+        <div className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
           {user.telefone ?? '—'}
           {user.email ? ` · ${user.email}` : ''}
         </div>
       </div>
       <button
         onClick={onEdit}
-        className="rounded-lg border border-zinc-300 px-3 py-1 text-sm hover:bg-zinc-100"
+        className="rounded-lg border border-zinc-300 dark:border-zinc-700 px-3 py-1 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
       >
         Editar
       </button>
@@ -190,7 +192,7 @@ function UserRow({
             await toggleAtivo(user.id, !user.ativo)
           })
         }
-        className="rounded-lg border border-zinc-300 px-3 py-1 text-sm hover:bg-zinc-100 disabled:opacity-50"
+        className="rounded-lg border border-zinc-300 dark:border-zinc-700 px-3 py-1 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50"
       >
         {user.ativo ? 'Desativar' : 'Reativar'}
       </button>
@@ -213,7 +215,7 @@ function UserRow({
               }
             })
           }}
-          className="rounded-lg border border-red-300 px-3 py-1 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50"
+          className="rounded-lg border border-red-300 dark:border-red-800 px-3 py-1 text-sm text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-50"
         >
           Excluir
         </button>
@@ -248,7 +250,7 @@ function UserForm({
           }
         })
       }}
-      className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-4"
+      className="space-y-3 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4"
     >
       {user && <input type="hidden" name="id" value={user.id} />}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -259,7 +261,7 @@ function UserForm({
             name="nome"
             required
             defaultValue={user?.nome ?? ''}
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm outline-none focus:border-zinc-900"
+            className="mt-1 w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-1.5 text-sm outline-none focus:border-zinc-900 dark:focus:border-zinc-400"
           />
         </label>
         <label className="text-sm">
@@ -268,7 +270,7 @@ function UserForm({
             name="papel"
             value={papel}
             onChange={(e) => setPapel(e.target.value as Papel)}
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm outline-none focus:border-zinc-900"
+            className="mt-1 w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-1.5 text-sm outline-none focus:border-zinc-900 dark:focus:border-zinc-400"
           >
             <option value="captador">Captador</option>
             <option value="comercial">Comercial</option>
@@ -284,7 +286,7 @@ function UserForm({
               required
               placeholder="+5511987654321"
               defaultValue={user?.telefone ?? ''}
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm outline-none focus:border-zinc-900"
+              className="mt-1 w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-1.5 text-sm outline-none focus:border-zinc-900 dark:focus:border-zinc-400 placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
             />
           </label>
         )}
@@ -297,24 +299,24 @@ function UserForm({
               required
               placeholder="usuario@email.com"
               defaultValue={user?.email ?? ''}
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm outline-none focus:border-zinc-900"
+              className="mt-1 w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-1.5 text-sm outline-none focus:border-zinc-900 dark:focus:border-zinc-400 placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
             />
           </label>
         )}
       </div>
-      {error && <p className="text-sm text-red-700">{error}</p>}
+      {error && <p className="text-sm text-red-700 dark:text-red-400">{error}</p>}
       <div className="flex gap-2">
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50"
+          className="rounded-lg bg-zinc-900 dark:bg-zinc-100 px-3 py-1.5 text-sm font-medium text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-300 disabled:opacity-50"
         >
           {user ? 'Salvar' : 'Criar'}
         </button>
         <button
           type="button"
           onClick={onDone}
-          className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100"
+          className="rounded-lg border border-zinc-300 dark:border-zinc-700 px-3 py-1.5 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
         >
           Cancelar
         </button>
@@ -393,15 +395,15 @@ function StatCard({
   accent?: 'zinc' | 'blue' | 'amber' | 'purple' | 'green'
 }) {
   const colors: Record<string, string> = {
-    zinc: 'text-zinc-900',
-    blue: 'text-blue-700',
-    amber: 'text-amber-700',
-    purple: 'text-purple-700',
-    green: 'text-green-700'
+    zinc: 'text-zinc-900 dark:text-zinc-100',
+    blue: 'text-blue-700 dark:text-blue-300',
+    amber: 'text-amber-700 dark:text-amber-300',
+    purple: 'text-purple-700 dark:text-purple-300',
+    green: 'text-green-700 dark:text-green-300'
   }
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-4">
-      <div className="text-xs uppercase tracking-wide text-zinc-500">
+    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+      <div className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
         {label}
       </div>
       <div className={'mt-1 text-2xl font-semibold ' + colors[accent]}>
@@ -422,13 +424,13 @@ function UserBreakdown({
 }) {
   if (users.length === 0) {
     return (
-      <p className="rounded-2xl border border-zinc-200 bg-white p-4 text-sm text-zinc-500">
+      <p className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 text-sm text-zinc-500 dark:text-zinc-400">
         Nenhum usuário ativo nesse papel.
       </p>
     )
   }
   return (
-    <ul className="divide-y divide-zinc-200 rounded-2xl border border-zinc-200 bg-white">
+    <ul className="divide-y divide-zinc-200 dark:divide-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
       {users.map((u) => {
         const total = countFor(u.id)
         const fechados = fechadosFor(u.id)
@@ -439,11 +441,11 @@ function UserBreakdown({
           >
             <div>
               <div className="font-medium">{u.nome}</div>
-              <div className="text-xs text-zinc-500">
+              <div className="text-xs text-zinc-500 dark:text-zinc-400">
                 {total} leads · {fechados} fechados
               </div>
             </div>
-            <div className="text-sm text-zinc-600">
+            <div className="text-sm text-zinc-600 dark:text-zinc-400">
               {total > 0
                 ? `${Math.round((fechados / total) * 100)}% conversão`
                 : '—'}
