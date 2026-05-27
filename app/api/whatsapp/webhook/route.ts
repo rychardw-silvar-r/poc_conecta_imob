@@ -6,6 +6,11 @@ import {
 } from '@/lib/whatsapp'
 import { transcribeAudio } from '@/lib/transcribe'
 import { extractLead, type LeadExtraido } from '@/lib/extract'
+import {
+  interpretarMensagem,
+  searchLeads,
+  formatSearchResults
+} from '@/lib/search'
 import { supabaseAdmin } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
@@ -33,18 +38,22 @@ export async function POST(req: NextRequest) {
   }
 
   const payload = JSON.parse(rawBody) as WhatsAppPayload
-  const audio = extractAudioMessage(payload)
+  const message = extractMessage(payload)
 
   // Responde 200 imediatamente; processa em background pra não estourar timeout
-  if (audio) {
+  if (message) {
     after(async () => {
       try {
-        await processAudioMessage(audio)
+        if (message.kind === 'audio') {
+          await processAudioMessage(message)
+        } else {
+          await processTextMessage(message)
+        }
       } catch (err) {
-        console.error('[whatsapp-webhook] erro processando áudio', err)
+        console.error('[whatsapp-webhook] erro processando mensagem', err)
         await sendWhatsAppText(
-          audio.from,
-          'Tive um problema ao processar seu áudio. Tente novamente em instantes.'
+          message.from,
+          'Tive um problema ao processar sua mensagem. Tente novamente em instantes.'
         ).catch(() => {})
       }
     })
@@ -66,6 +75,7 @@ type WhatsAppPayload = {
           from: string
           type: string
           audio?: { id: string; mime_type: string }
+          text?: { body: string }
         }>
       }
     }>
@@ -73,20 +83,76 @@ type WhatsAppPayload = {
 }
 
 type IncomingAudio = {
+  kind: 'audio'
   from: string // E.164 sem '+', conforme Meta envia
   mediaId: string
   messageId: string
 }
 
-function extractAudioMessage(payload: WhatsAppPayload): IncomingAudio | null {
+type IncomingText = {
+  kind: 'text'
+  from: string
+  body: string
+  messageId: string
+}
+
+type IncomingMessage = IncomingAudio | IncomingText
+
+function extractMessage(payload: WhatsAppPayload): IncomingMessage | null {
   const msg = payload.entry?.[0]?.changes?.[0]?.value?.messages?.[0]
-  if (!msg || msg.type !== 'audio' || !msg.audio) return null
-  return { from: msg.from, mediaId: msg.audio.id, messageId: msg.id }
+  if (!msg) return null
+  if (msg.type === 'audio' && msg.audio) {
+    return {
+      kind: 'audio',
+      from: msg.from,
+      mediaId: msg.audio.id,
+      messageId: msg.id
+    }
+  }
+  if (msg.type === 'text' && msg.text?.body) {
+    return {
+      kind: 'text',
+      from: msg.from,
+      body: msg.text.body,
+      messageId: msg.id
+    }
+  }
+  return null
 }
 
 // ----------------------------------------------------------------------
 // Pipeline principal
 // ----------------------------------------------------------------------
+
+async function processTextMessage(msg: IncomingText): Promise<void> {
+  const supabase = supabaseAdmin()
+  const fromE164 = '+' + msg.from
+
+  const { data: usuario } = await supabase
+    .from('usuarios')
+    .select('id, nome')
+    .eq('telefone', fromE164)
+    .eq('ativo', true)
+    .maybeSingle()
+
+  if (!usuario) {
+    await sendWhatsAppText(
+      msg.from,
+      'Olá! Seu número não está cadastrado no Conecta Imob. Fale com o administrador.'
+    )
+    return
+  }
+
+  const output = await interpretarMensagem(msg.body)
+
+  if (output.kind === 'text') {
+    await sendWhatsAppText(msg.from, output.text)
+    return
+  }
+
+  const leads = await searchLeads(output.filters)
+  await sendWhatsAppText(msg.from, formatSearchResults(leads))
+}
 
 async function processAudioMessage(msg: IncomingAudio): Promise<void> {
   const supabase = supabaseAdmin()
