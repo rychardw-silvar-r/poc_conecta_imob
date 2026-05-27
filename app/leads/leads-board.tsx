@@ -7,7 +7,8 @@ import {
   assumirLead,
   mudarStatus,
   addNota,
-  getInteracoes
+  getInteracoes,
+  deleteLead
 } from './actions'
 import { signOut } from '../login/actions'
 import { supabaseBrowser } from '@/lib/supabase/client'
@@ -295,6 +296,24 @@ function LeadRow({
                 Atribuído a {lead.comercial.nome}
               </span>
             )}
+            <button
+              disabled={isPending}
+              onClick={() => {
+                if (
+                  !confirm(
+                    `Excluir o lead de ${lead.nome_cliente ?? 'cliente sem nome'}? Esta ação é permanente e remove o histórico de interações também.`
+                  )
+                ) {
+                  return
+                }
+                startTransition(async () => {
+                  await deleteLead(lead.id)
+                })
+              }}
+              className="rounded-lg border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50"
+            >
+              Excluir
+            </button>
           </div>
 
           <InteracoesSection leadId={lead.id} />

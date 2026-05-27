@@ -88,6 +88,13 @@ export async function addNota(leadId: string, conteudo: string) {
   revalidatePath('/leads')
 }
 
+export async function deleteLead(leadId: string) {
+  const { admin } = await autorizarComercial()
+  const { error } = await admin.from('leads').delete().eq('id', leadId)
+  if (error) throw new Error(error.message)
+  revalidatePath('/leads')
+}
+
 export async function getInteracoes(leadId: string): Promise<Interacao[]> {
   const { admin } = await autorizarComercial()
   const { data } = await admin
