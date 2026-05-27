@@ -48,22 +48,38 @@ export function LeadsBoard({
   useEffect(() => {
     const supabase = supabaseBrowser()
     console.log('[realtime] inicializando subscription leads')
-    const channel = supabase
-      .channel('leads-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'leads' },
-        (payload) => {
-          console.log('[realtime] evento leads:', payload)
-          router.refresh()
-        }
-      )
-      .subscribe((status, err) => {
-        console.log('[realtime] status:', status, err ?? '')
-      })
+
+    let channel: ReturnType<typeof supabase.channel> | null = null
+
+    ;(async () => {
+      const {
+        data: { session }
+      } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        console.log('[realtime] aplicando access_token na realtime')
+        supabase.realtime.setAuth(session.access_token)
+      } else {
+        console.warn('[realtime] sem sessão — RLS vai bloquear eventos')
+      }
+
+      channel = supabase
+        .channel('leads-realtime')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'leads' },
+          (payload) => {
+            console.log('[realtime] evento leads:', payload)
+            router.refresh()
+          }
+        )
+        .subscribe((status, err) => {
+          console.log('[realtime] status:', status, err ?? '')
+        })
+    })()
+
     return () => {
       console.log('[realtime] removendo subscription')
-      supabase.removeChannel(channel)
+      if (channel) supabase.removeChannel(channel)
     }
   }, [router])
 
@@ -417,6 +433,7 @@ function statusColor(s: StatusLead): string {
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
     day: '2-digit',
     month: '2-digit',
     hour: '2-digit',
